@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Title</title>
+    <style>
+        canvas {
+            border: 1px solid #fd3301;
+        }
+    </style>
+    </head>
+    <body>
+    <canvas id="game" width = "500" height =500 ></canvas>
+    <script>
+        let c  =document.getElementById('game');
+        let ctx =c.getContext('2d');
+       let ball = {
+           x:10,
+           y:10,
+           dx:9,
+           dy:2,
+           radius:10,
+       };
+        let paddle = {
+            width:70,
+         height:20,
+            x:0,
+            y: c.height-20,
+            speed:15,
+            };
+        let BrickConfig={
+            offsetX:25,
+            offsetY:25,
+            margin:25,
+            width:70,
+            height:15,
+            totalRow:3,
+            totalCol:5,
+        };
+        let BrickList=[];
+        for (let i =0;i<BrickConfig.totalRow;i++){
+            for (let j=0;j<BrickConfig.totalCol;j++){
+                BrickList.push({
+                    x:BrickConfig.offsetX+j*(BrickConfig.width+BrickConfig.margin),
+                    y:BrickConfig.offsetY+i*(BrickConfig.height+BrickConfig.margin),
+                    isBroken:false
+                });
+            }
+        }
+        let isGameover = false;
+        document.addEventListener('keydown', function (event){
+            console.log('KEY DOWN');
+            console.log(event);
+            if (event.keyCode==37){
+                paddle.x -= paddle.speed;
+            }else if (event.keyCode==39){
+                paddle.x += paddle.speed;
+            }
+        });
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y,ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#0022ff"
+            ctx.fill();
+            ctx.closePath();
+        }
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            ctx.fillStyle = "#ff0000";
+            ctx.fill;
+            ctx.closePath();
+    }
+        function drawBricks() {
+            BrickList.forEach(function (b){
+                    ctx.beginPath();
+                    ctx.fillRect(b.x,b.y,BrickConfig.width,BrickConfig.height);
+                    ctx.fillStyle = "#ff0000";
+                    ctx.fill();
+                    ctx.closePath();
+                });
+            }
+
+        function handleCollision() {
+            if (ball.x<ball.radius||ball.x>c.width-ball.radius){
+                ball.dx=-ball.dx;
+            }
+            if (ball.y<ball.radius){
+                ball.dy=-ball.dy;
+            }
+        }
+        function handleBallCollidePaddle() {
+            if (ball.x+ball.radius>=paddle.x&&ball.x+ball.radius<=paddle.x+paddle.width&&
+                ball.y+ball.radius>=c.height-paddle.height){
+                ball.dy=-ball.dy;
+            }
+        }
+        function handleBallCollideBricks() {
+            BrickList.forEach(function (b) {
+                if (!b.isBroken) {
+                    if (ball.x >= b.x && ball.x <= b.x + BrickConfig.width &&
+                        ball.y + ball.radius >= b.y &&
+                        ball.y - ball.radius <= b.y + BrickConfig.height) {
+                        ball.dy = -ball.dy;
+                        b.isBroken = true;
+                    }
+                }
+            });
+        }
+
+        function updateBallPosition() {
+            ball.x += ball.dx;
+           ball.y += ball.dy;
+        }
+        function updatePaddlePosition() {
+            if (paddle.x<0){
+                paddle.x = 0;
+            }else  if (paddle.x>c.width-paddle.width){
+                paddle.x = c.width - paddle.width;
+            }
+            
+        }
+        function checkGameover() {
+            if (ball.y>c.height-ball.radius){
+                isGameover=true;
+            }
+        }
+        function handleGameover() {
+            console.log('GAme over');
+        }
+        function draw() {if (!isGameover){
+            ctx.clearRect(0,0,c.clientWidth,c.clientHeight);
+                drawBall();
+                drawPaddle();
+                drawBricks();
+            updatePaddlePosition();
+            handleCollision();
+            handleBallCollidePaddle();
+            handleBallCollideBricks();
+            updateBallPosition();
+            checkGameover();
+             requestAnimationFrame(draw);
+        }else {
+            console.log('GAme over');
+        }
+        }
+        draw();
+
+
+</script>
+</body>
+</html>
